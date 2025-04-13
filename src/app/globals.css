@@ -1,0 +1,55 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+  --card-background: #f7f7f7;
+  --card-border: #e5e5e5;
+  --primary: #000000;
+  --primary-hover: #333333;
+  --header-bg: #000000;
+  --header-text: #ffffff;
+}
+
+.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  --card-background: #1a1a1a;
+  --card-border: #2a2a2a;
+  --primary: #ffffff;
+  --primary-hover: #e0e0e0;
+  --header-bg: #000000;
+  --header-text: #ffffff;
+}
+
+@layer base {
+  body {
+    @apply bg-white dark:bg-gray-900 text-black dark:text-white transition-colors duration-300;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply text-black dark:text-white transition-colors duration-300;
+  }
+
+  p {
+    @apply text-gray-700 dark:text-gray-300 transition-colors duration-300;
+  }
+
+  a {
+    @apply hover:text-gray-800 dark:hover:text-gray-200 transition-colors duration-300;
+  }
+}
+
+/* Common elements */
+.card {
+  @apply bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 transition-colors duration-300;
+}
+
+/* Transition for theme changes */
+* {
+  transition-property: color, background-color, border-color;
+  transition-duration: 200ms;
+  transition-timing-function: ease-in-out;
+}
