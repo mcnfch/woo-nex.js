@@ -159,6 +159,28 @@ export function processCategories(categories: Category[], featuredSlugs: string[
 }
 
 /**
+ * Product variation interface
+ */
+export interface ProductVariation {
+  id: number;
+  sku: string;
+  price: string;
+  regular_price: string;
+  sale_price: string;
+  stock_quantity: number;
+  stock_status: string;
+  attributes: {
+    name: string;
+    option: string;
+  }[];
+  image: {
+    id: number;
+    src: string;
+    alt: string;
+  };
+}
+
+/**
  * Product interface
  */
 export interface Product {
@@ -176,6 +198,7 @@ export interface Product {
   regular_price: string;
   sale_price: string;
   on_sale: boolean;
+  sku?: string;
   categories: {
     id: number;
     name: string;
@@ -190,6 +213,19 @@ export interface Product {
     id: number;
     src: string;
     alt: string;
+  }[];
+  attributes?: {
+    id: number;
+    name: string;
+    position: number;
+    visible: boolean;
+    variation: boolean;
+    options: string[];
+  }[];
+  variations?: ProductVariation[];
+  meta_data?: {
+    key: string;
+    value: any;
   }[];
 }
 
@@ -274,5 +310,59 @@ export async function getProducts(categoryId?: number, perPage: number = 20): Pr
   } catch (error) {
     console.error('Error fetching products:', error);
     return [];
+  }
+}
+
+/**
+ * Fetch a specific product by slug
+ * @param slug The product slug to fetch
+ * @returns The product or null if not found
+ */
+export async function getProductBySlug(slug: string): Promise<Product | null> {
+  try {
+    // WooCommerce API credentials from environment variables
+    const consumerKey = process.env.NEXT_PUBLIC_WOOCOMMERCE_KEY;
+    const consumerSecret = process.env.NEXT_PUBLIC_WOOCOMMERCE_SECRET;
+    const baseUrl = process.env.NEXT_PUBLIC_WOOCOMMERCE_URL;
+    
+    if (!consumerKey || !consumerSecret || !baseUrl) {
+      console.error('WooCommerce API credentials or base URL are not set');
+      return null;
+    }
+
+    // First try to find by slug
+    let apiUrl = `${baseUrl}/wp-json/wc/v3/products?consumer_key=${consumerKey}&consumer_secret=${consumerSecret}&slug=${slug}`;
+    let response = await fetch(apiUrl, { cache: 'no-store' });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch product, status: ${response.status}`);
+    }
+    
+    let products = await response.json();
+    
+    // If no product found by slug, return null
+    if (!products || products.length === 0) {
+      return null;
+    }
+    
+    const product = products[0];
+    
+    // If product is variable, fetch its variations
+    if (product.type === 'variable') {
+      const variationsUrl = `${baseUrl}/wp-json/wc/v3/products/${product.id}/variations?consumer_key=${consumerKey}&consumer_secret=${consumerSecret}&per_page=100`;
+      const variationsResponse = await fetch(variationsUrl, { cache: 'no-store' });
+      
+      if (variationsResponse.ok) {
+        const variations = await variationsResponse.json();
+        product.variations = variations;
+      } else {
+        console.error('Failed to fetch variations:', variationsResponse.status);
+      }
+    }
+    
+    return product;
+  } catch (error) {
+    console.error('Error fetching product:', error);
+    return null;
   }
 }

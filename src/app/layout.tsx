@@ -36,7 +36,7 @@ export default async function RootLayout({
       >
         <ThemeProvider>
           <Header categories={categories} />
-          <main className="pt-20">
+          <main className="pt-20 md:pt-20">
             {children}
           </main>
           <Footer categories={categories} />

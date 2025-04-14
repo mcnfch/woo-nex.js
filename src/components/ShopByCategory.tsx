@@ -24,7 +24,7 @@ async function ShopByCategory({
   const processedCategories = processCategories(categories, featuredCategories);
 
   return (
-    <section className={`py-12 bg-gray-100 dark:bg-black ${className}`}>
+    <section className={`md:py-12 pt-20 pb-12 md:pt-12 md:pb-12 bg-gray-100 dark:bg-black ${className}`}>
       <div className="container mx-auto px-4">
         {title && (
           <h2 className="text-2xl font-bold mb-8 text-gray-800 dark:text-white">{title}</h2>

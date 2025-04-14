@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useTheme } from 'next-themes';
 
-const storageKey = 'theme-preference';
+// Removing unused variable
+// const storageKey = 'theme-preference';
 
 export default function ThemeToggle() {
   const { theme, setTheme } = useTheme();
@@ -14,9 +15,10 @@ export default function ThemeToggle() {
     setMounted(true);
   }, []);
 
-  const toggleTheme = () => {
+  // Use useCallback to memoize the toggleTheme function
+  const toggleTheme = useCallback(() => {
     setTheme(theme === 'dark' ? 'light' : 'dark');
-  };
+  }, [theme, setTheme]);
 
   // Prevent hydration issues
   if (!mounted) {
