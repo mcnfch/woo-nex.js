@@ -42,7 +42,16 @@ const ProductImage: React.FC<ProductImageProps> = ({ src, alt, className = '' })
       
       // For regular WordPress images, just return without the CDN prefix and query params
       if (src.includes('wp.com')) {
-        return src.replace(/^https?:\/\/i[0-2]\.wp\.com\//, 'https://').split('?')[0];
+        // Remove WordPress CDN prefixes
+        let processedUrl = src.replace(/^https?:\/\/i[0-2]\.wp\.com\//, '');
+        
+        // Ensure URL starts with https:// if it doesn't already
+        if (!processedUrl.startsWith('http')) {
+          processedUrl = 'https://' + processedUrl;
+        }
+        
+        // Remove query params
+        return processedUrl.split('?')[0];
       }
       
       // For any other URL, just return as is but without query params

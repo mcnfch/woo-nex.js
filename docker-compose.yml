@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7
+    container_name: redis-cart
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    restart: always
+    
+  redis-search:
+    build:
+      context: .
+      dockerfile: redis-search.Dockerfile
+    container_name: redis-search
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis-search-data:/data
+      - ./.env:/app/.env
+    restart: always
+    environment:
+      - NODE_ENV=production
+
+volumes:
+  redis-data:
+  redis-search-data:

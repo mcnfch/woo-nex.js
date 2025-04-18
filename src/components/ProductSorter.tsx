@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Product } from '../lib/woocommerce';
 
 interface ProductSorterProps {
@@ -21,11 +21,12 @@ const ProductSorter: React.FC<ProductSorterProps> = ({ products, onSortChange })
   const dropdownRef = useRef<HTMLDivElement>(null);
   const initializedRef = useRef(false);
 
-  // Define sorting options
-  const sortOptions: SortOption[] = [
+  // Define sorting options wrapped in useMemo to prevent dependencies issues
+  const sortOptions: SortOption[] = useMemo(() => [
     {
       id: 'featured',
       label: 'Featured',
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       sortFn: (a, b) => 0 // No sorting, keep original order
     },
     {
@@ -58,7 +59,7 @@ const ProductSorter: React.FC<ProductSorterProps> = ({ products, onSortChange })
       label: 'Date, new to old',
       sortFn: (a, b) => new Date(b.date_created).getTime() - new Date(a.date_created).getTime()
     }
-  ];
+  ], []);
 
   // Filter options based on search text
   const filteredOptions = filterText
@@ -81,7 +82,7 @@ const ProductSorter: React.FC<ProductSorterProps> = ({ products, onSortChange })
       setSelectedOption(sortOptions[0]);
       initializedRef.current = true;
     }
-  }, []);
+  }, [sortOptions]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -95,7 +96,7 @@ const ProductSorter: React.FC<ProductSorterProps> = ({ products, onSortChange })
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, []);
+  }, [dropdownRef]);
 
   const toggleDropdown = () => setIsOpen(!isOpen);
 

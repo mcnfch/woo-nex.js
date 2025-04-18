@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Suspense } from 'react';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
+import { ShoppingBagProvider } from '../context/ShoppingBagContext';
+import { ThemeProvider } from '../components/theme-provider';
+import SalesBanner from '../components/SalesBanner';
 import "./globals.css";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
 import { getCategories } from "../lib/woocommerce";
-import { ThemeProvider } from "../components/theme-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,11 +38,15 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-white dark:bg-gray-900 text-black dark:text-white`}
       >
         <ThemeProvider>
-          <Header categories={categories} />
-          <main className="pt-20 md:pt-20">
-            {children}
-          </main>
-          <Footer categories={categories} />
+          <ShoppingBagProvider>
+            <Header categories={categories} />
+            <main className="pt-20 md:pt-20">
+              {children}
+            </main>
+            <Footer categories={categories} />
+            {/* Sales Banner - will only show based on cookie status */}
+            <SalesBanner />
+          </ShoppingBagProvider>
         </ThemeProvider>
       </body>
     </html>

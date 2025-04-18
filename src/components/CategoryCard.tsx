@@ -30,27 +30,27 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
 
   // Process the image URL to remove WordPress CDN prefix and query params
   let processedImageUrl = image?.src || placeholderImg;
-  if (image?.src && image.src.match(/^https:\/\/i[0-2]\.wp\.com\//)) {
+  
+  // Specifically remove i0.wp.com/ from the image URL if present
+  if (image?.src) {
     try {
-      // More robust: Remove the CDN part and any query string
-      const coreUrl = image.src.replace(/^https:\/\/i[0-2]\.wp\.com\//, 'https://');
-      processedImageUrl = coreUrl.split('?')[0]; // Remove query string
-    } catch (e) {
-      console.error("Error processing WP CDN image URL:", image.src, e);
-      // Fallback to original src if processing fails, potentially keeping query params if splitting fails
-      try {
-         processedImageUrl = image.src.split('?')[0];
-      } catch { 
-         processedImageUrl = image.src; // Use original as last resort
+      // Remove i0.wp.com/ prefix
+      processedImageUrl = image.src.replace(/^https?:\/\/i0\.wp\.com\//, '');
+      
+      // Also handle other WordPress CDN prefixes
+      processedImageUrl = processedImageUrl.replace(/^https?:\/\/i[1-2]\.wp\.com\//, '');
+      
+      // Ensure URL starts with https:// if it doesn't already
+      if (!processedImageUrl.startsWith('http')) {
+        processedImageUrl = 'https://' + processedImageUrl;
       }
+      
+      // Remove query string
+      processedImageUrl = processedImageUrl.split('?')[0];
+    } catch (e) {
+      console.error("Error processing image URL:", image.src, e);
+      processedImageUrl = image.src; // Use original as last resort
     }
-  } else if (image?.src) {
-     // If not a wp.com URL, still attempt to remove potential query params
-     try {
-        processedImageUrl = image.src.split('?')[0];
-     } catch {
-        processedImageUrl = image.src;
-     }
   }
 
   // Card styles based on display style

@@ -8,7 +8,7 @@ interface ProductTabsProps {
 }
 
 const ProductTabs: React.FC<ProductTabsProps> = ({ product }) => {
-  const [activeTab, setActiveTab] = useState<string | null>('details');
+  const [activeTab, setActiveTab] = useState<string | null>(null);
   
   const toggleTab = (tabId: string) => {
     setActiveTab(prev => prev === tabId ? null : tabId);

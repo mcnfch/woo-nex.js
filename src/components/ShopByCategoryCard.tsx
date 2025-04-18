@@ -20,7 +20,10 @@ const ShopByCategoryCard: React.FC<ShopByCategoryCardProps> = ({
   className = ''
 }) => {
   return (
-    <div className={`bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 ${className}`}>
+    <Link 
+      href={`/product-category/${slug}`}
+      className={`block bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 ${className}`}
+    >
       <div className="relative h-48 sm:h-56 md:h-64 w-full">
         <Image 
           src={imageUrl} 
@@ -28,6 +31,7 @@ const ShopByCategoryCard: React.FC<ShopByCategoryCardProps> = ({
           fill
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           style={{ objectFit: 'cover' }}
+          priority
         />
       </div>
       
@@ -35,9 +39,8 @@ const ShopByCategoryCard: React.FC<ShopByCategoryCardProps> = ({
         <h3 className="text-lg sm:text-xl font-bold mb-2 dark:text-white">{title}</h3>
         <p className="text-gray-600 dark:text-gray-300 text-sm mb-4 line-clamp-3">{description}</p>
         
-        <Link 
-          href={`/product-category/${slug}`}
-          className="inline-flex items-center text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 transition-colors font-medium"
+        <button 
+          className="inline-flex items-center justify-center bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-md transition-colors"
         >
           Shop Now 
           <svg 
@@ -54,9 +57,9 @@ const ShopByCategoryCard: React.FC<ShopByCategoryCardProps> = ({
               d="M14 5l7 7m0 0l-7 7m7-7H3" 
             />
           </svg>
-        </Link>
+        </button>
       </div>
-    </div>
+    </Link>
   );
 };
 

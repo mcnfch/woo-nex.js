@@ -26,12 +26,12 @@ const ProductGallery: React.FC<ProductGalleryProps> = ({ images }) => {
       {/* Desktop Gallery with Thumbnails */}
       <div className="hidden md:flex gap-4">
         {/* Thumbnails */}
-        <div className="flex flex-col gap-2 w-20">
+        <div className="flex flex-col gap-2 w-20 h-[500px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600">
           {displayImages.map((image, index) => (
             <button
               key={`thumb-${image.id}-${index}`}
               onClick={() => setActiveImage(index)}
-              className={`relative aspect-square w-full border-2 rounded-md overflow-hidden 
+              className={`relative aspect-square w-full border-2 rounded-md overflow-hidden flex-shrink-0
                 ${activeImage === index 
                   ? 'border-purple-600 dark:border-purple-400' 
                   : 'border-gray-200 dark:border-gray-700'}`}
@@ -47,7 +47,7 @@ const ProductGallery: React.FC<ProductGalleryProps> = ({ images }) => {
         </div>
         
         {/* Main Image */}
-        <div className="flex-1 relative aspect-square">
+        <div className="flex-1 relative aspect-square h-[500px]">
           <ProductImage
             src={displayImages[activeImage].src}
             alt={displayImages[activeImage].alt}

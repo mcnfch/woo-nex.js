@@ -16,11 +16,14 @@ const CustomDesignCard: React.FC<CustomDesignCardProps> = ({
   imageUrl,
   title = 'Custom Designs',
   description = 'Create your own unique piece with our custom design service',
-  linkUrl = '/custom-design',
+  linkUrl = '/custom-designs',
   className = ''
 }) => {
   return (
-    <div className={`bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-md transition-transform duration-300 hover:shadow-lg hover:-translate-y-1 ${className}`}>
+    <Link 
+      href={linkUrl}
+      className={`block bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-md transition-transform duration-300 hover:shadow-lg hover:-translate-y-1 ${className}`}
+    >
       <div className="relative h-60 w-full">
         <Image
           src={imageUrl}
@@ -36,9 +39,8 @@ const CustomDesignCard: React.FC<CustomDesignCardProps> = ({
         <h3 className="text-xl font-bold mb-2 dark:text-white">{title}</h3>
         <p className="text-gray-700 dark:text-gray-300 mb-4 text-sm line-clamp-3">{description}</p>
         
-        <Link 
-          href={linkUrl}
-          className="inline-flex items-center text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 transition-colors"
+        <button 
+          className="inline-flex items-center justify-center bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-md transition-colors"
         >
           Start Creating 
           <svg 
@@ -55,9 +57,9 @@ const CustomDesignCard: React.FC<CustomDesignCardProps> = ({
               d="M14 5l7 7m0 0l-7 7m7-7H3" 
             />
           </svg>
-        </Link>
+        </button>
       </div>
-    </div>
+    </Link>
   );
 };
 

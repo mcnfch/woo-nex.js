@@ -1,5 +1,14 @@
 // WooCommerce API utility functions
 
+/**
+ * Simple utility function to replace HTML entities with their actual characters
+ * Specifically targets &amp; entities, can be expanded for others if needed
+ */
+export function decodeHtmlEntities(text: string): string {
+  if (!text) return '';
+  return text.replace(/&amp;/g, '&');
+}
+
 export interface Category {
   id: number;
   name: string;
@@ -59,7 +68,7 @@ export async function getCategories(parent?: number): Promise<Category[]> {
     const authString = Buffer.from(`${consumerKey}:${consumerSecret}`).toString('base64');
 
     // Build the API URL with parameters
-    let apiUrl = `${woocommerceUrl}/wp-json/wc/v3/products/categories?per_page=100`;
+    let apiUrl = `${woocommerceUrl}/wp-json/wc/v3/products/categories?per_page=100&_=${Date.now()}`;
     
     // Add parent parameter if provided
     if (parent !== undefined) {
@@ -71,6 +80,9 @@ export async function getCategories(parent?: number): Promise<Category[]> {
       headers: {
         'Authorization': `Basic ${authString}`,
         'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
       },
       next: { 
         revalidate: 3600 // Revalidate every hour
@@ -83,8 +95,14 @@ export async function getCategories(parent?: number): Promise<Category[]> {
 
     const categories = await response.json();
 
-    // Filter out uncategorized category
-    return categories.filter((cat: Category) => cat.slug !== 'uncategorized');
+    // Filter out uncategorized category and decode HTML entities in names
+    return categories
+      .filter((cat: Category) => cat.slug !== 'uncategorized')
+      .map((cat: Category) => ({
+        ...cat,
+        name: decodeHtmlEntities(cat.name),
+        description: decodeHtmlEntities(cat.description)
+      }));
   } catch (error) {
     console.error('Error fetching categories:', error);
     return [];
@@ -227,6 +245,7 @@ export interface Product {
     key: string;
     value: any;
   }[];
+  related_ids?: number[];
 }
 
 /**
@@ -252,7 +271,7 @@ export async function getProducts(categoryId?: number, perPage: number = 20): Pr
     // Function to fetch a single page of products
     const fetchProductPage = async (page: number): Promise<{products: Product[], totalPages: number}> => {
       // Build the API URL with parameters
-      let apiUrl = `${woocommerceUrl}/wp-json/wc/v3/products?per_page=${perPage}&page=${page}`;
+      let apiUrl = `${woocommerceUrl}/wp-json/wc/v3/products?per_page=${perPage}&page=${page}&_=${Date.now()}`;
       
       // Add category filter if provided
       if (categoryId) {
@@ -264,6 +283,9 @@ export async function getProducts(categoryId?: number, perPage: number = 20): Pr
         headers: {
           'Authorization': `Basic ${authString}`,
           'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
         },
         next: { 
           revalidate: 3600 // Revalidate every hour
@@ -279,7 +301,16 @@ export async function getProducts(categoryId?: number, perPage: number = 20): Pr
       
       // Return products and total pages
       return {
-        products: await response.json(),
+        products: (await response.json()).map((product: Product) => ({
+          ...product,
+          name: decodeHtmlEntities(product.name),
+          description: decodeHtmlEntities(product.description),
+          short_description: decodeHtmlEntities(product.short_description),
+          categories: product.categories ? product.categories.map((cat: {id: number; name: string; slug: string}) => ({
+            ...cat,
+            name: decodeHtmlEntities(cat.name)
+          })) : []
+        })),
         totalPages
       };
     };
@@ -331,14 +362,21 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
     }
 
     // First try to find by slug
-    let apiUrl = `${baseUrl}/wp-json/wc/v3/products?consumer_key=${consumerKey}&consumer_secret=${consumerSecret}&slug=${slug}`;
-    let response = await fetch(apiUrl, { cache: 'no-store' });
+    const apiUrl = `${baseUrl}/wp-json/wc/v3/products?consumer_key=${consumerKey}&consumer_secret=${consumerSecret}&slug=${slug}&_=${Date.now()}`;
+    const response = await fetch(apiUrl, { 
+      next: { 
+        revalidate: 3600 // Revalidate every hour
+      },
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
     
     if (!response.ok) {
       throw new Error(`Failed to fetch product, status: ${response.status}`);
     }
     
-    let products = await response.json();
+    const products = await response.json();
     
     // If no product found by slug, return null
     if (!products || products.length === 0) {
@@ -347,10 +385,29 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
     
     const product = products[0];
     
+    // Decode HTML entities in product data
+    product.name = decodeHtmlEntities(product.name);
+    product.description = decodeHtmlEntities(product.description);
+    product.short_description = decodeHtmlEntities(product.short_description);
+    
+    if (product.categories) {
+      product.categories = product.categories.map((cat: {id: number; name: string; slug: string}) => ({
+        ...cat,
+        name: decodeHtmlEntities(cat.name)
+      }));
+    }
+    
     // If product is variable, fetch its variations
     if (product.type === 'variable') {
-      const variationsUrl = `${baseUrl}/wp-json/wc/v3/products/${product.id}/variations?consumer_key=${consumerKey}&consumer_secret=${consumerSecret}&per_page=100`;
-      const variationsResponse = await fetch(variationsUrl, { cache: 'no-store' });
+      const variationsUrl = `${baseUrl}/wp-json/wc/v3/products/${product.id}/variations?consumer_key=${consumerKey}&consumer_secret=${consumerSecret}&per_page=100&_=${Date.now()}`;
+      const variationsResponse = await fetch(variationsUrl, { 
+        next: { 
+          revalidate: 3600 // Revalidate every hour
+        },
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
       
       if (variationsResponse.ok) {
         const variations = await variationsResponse.json();
@@ -363,6 +420,160 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
     return product;
   } catch (error) {
     console.error('Error fetching product:', error);
+    return null;
+  }
+}
+
+/**
+ * Fetch related products by their IDs
+ * @param relatedIds Array of related product IDs
+ * @param limit Maximum number of products to return (default: 4)
+ * @returns Array of related products
+ */
+export async function getRelatedProducts(relatedIds: number[], limit: number = 4): Promise<Product[]> {
+  try {
+    // Limit the number of IDs to fetch
+    const limitedIds = relatedIds.slice(0, limit);
+    
+    if (limitedIds.length === 0) {
+      return [];
+    }
+    
+    // WooCommerce API credentials from environment variables
+    const consumerKey = process.env.NEXT_PUBLIC_WOOCOMMERCE_KEY;
+    const consumerSecret = process.env.NEXT_PUBLIC_WOOCOMMERCE_SECRET;
+    const woocommerceUrl = process.env.NEXT_PUBLIC_WOOCOMMERCE_URL;
+
+    if (!consumerKey || !consumerSecret || !woocommerceUrl) {
+      throw new Error('WooCommerce API credentials not found in environment variables');
+    }
+
+    // Create authentication string for Basic Auth
+    const authString = Buffer.from(`${consumerKey}:${consumerSecret}`).toString('base64');
+
+    // Build the API URL with the include parameter for specific product IDs
+    const apiUrl = `${woocommerceUrl}/wp-json/wc/v3/products?include=${limitedIds.join(',')}&_=${Date.now()}`;
+    
+    // Make the request to WooCommerce API
+    const response = await fetch(apiUrl, {
+      headers: {
+        'Authorization': `Basic ${authString}`,
+        'Content-Type': 'application/json'
+      },
+      next: { 
+        revalidate: 3600 // Revalidate every hour
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`WooCommerce API responded with status: ${response.status}`);
+    }
+
+    const products = await response.json();
+    return products.map((product: Product) => ({
+      ...product,
+      name: decodeHtmlEntities(product.name),
+      description: decodeHtmlEntities(product.description),
+      short_description: decodeHtmlEntities(product.short_description),
+      categories: product.categories ? product.categories.map((cat: {id: number; name: string; slug: string}) => ({
+        ...cat,
+        name: decodeHtmlEntities(cat.name)
+      })) : []
+    }));
+  } catch (error) {
+    console.error('Error fetching related products:', error);
+    return [];
+  }
+}
+
+/**
+ * WordPress Blog Post interface
+ */
+export interface BlogPost {
+  id: number;
+  date: string;
+  title: {
+    rendered: string;
+  };
+  excerpt: {
+    rendered: string;
+  };
+  content: {
+    rendered: string;
+  };
+  link: string;
+  slug: string;
+  featured_media: number;
+  _embedded?: {
+    'wp:featuredmedia'?: Array<{
+      source_url: string;
+      alt_text: string;
+    }>;
+  };
+}
+
+/**
+ * Fetch all blog posts from WordPress API
+ * @returns Array of blog posts
+ */
+export async function getBlogPosts(): Promise<BlogPost[]> {
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_WOOCOMMERCE_URL}/wp-json/wp/v2/posts?_embed&per_page=100`
+    );
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch blog posts');
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching blog posts:', error);
+    return [];
+  }
+}
+
+/**
+ * Fetch a specific blog post by ID
+ * @param id The blog post ID to fetch
+ * @returns The blog post or null if not found
+ */
+export async function getBlogPostById(id: number): Promise<BlogPost | null> {
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_WOOCOMMERCE_URL}/wp-json/wp/v2/posts/${id}?_embed`
+    );
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch blog post with ID ${id}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error(`Error fetching blog post with ID ${id}:`, error);
+    return null;
+  }
+}
+
+/**
+ * Fetch a specific blog post by slug
+ * @param slug The blog post slug to fetch
+ * @returns The blog post or null if not found
+ */
+export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> {
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_WOOCOMMERCE_URL}/wp-json/wp/v2/posts?slug=${slug}&_embed`
+    );
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch blog post with slug ${slug}`);
+    }
+    
+    const posts = await response.json();
+    return posts.length > 0 ? posts[0] : null;
+  } catch (error) {
+    console.error(`Error fetching blog post with slug ${slug}:`, error);
     return null;
   }
 }

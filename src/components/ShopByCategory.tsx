@@ -47,7 +47,7 @@ async function ShopByCategory({
             title="Custom Designs"
             description="Create your own unique piece with our custom design service"
             imageUrl="https://ggbe.groovygallerydesigns.com/wp-content/uploads/2024/12/muckingfuch_Rainbow_Mandelbrot_fractal.png"
-            linkUrl="/custom-design"
+            linkUrl="/custom-designs"
           />
         </div>
         

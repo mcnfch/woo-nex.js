@@ -33,7 +33,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           <div>
             {product.on_sale && product.regular_price ? (
               <div className="flex items-center gap-1">
-                <span className="text-gray-400 line-through text-xs dark:text-gray-300">${product.regular_price}</span>
+                <span className="text-gray-400 line-through text-xs dark:text-gray-300">{product.regular_price}</span>
                 <span className="font-semibold text-purple-600 text-sm dark:text-purple-300">${product.sale_price}</span>
               </div>
             ) : (

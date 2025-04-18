@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Product, ProductVariation } from '../lib/woocommerce';
 
 interface ProductAttributesProps {
@@ -14,35 +14,83 @@ export const ProductAttributes: React.FC<ProductAttributesProps> = ({
 }) => {
   const [selectedAttributes, setSelectedAttributes] = useState<Record<string, string>>({});
 
-  // Filter valid attributes (multiple options, not shipping)
-  const validAttributes = useMemo(() => {
-    if (!product.attributes) return [];
+  // Separate attributes into visible and hidden categories
+  const { visibleAttributes, hiddenAttributes } = React.useMemo(() => {
+    if (!product.attributes) return { visibleAttributes: [], hiddenAttributes: [] };
     
-    return product.attributes.filter(attr => 
+    const visible = product.attributes.filter(attr => 
       attr.variation && // must be a variation attribute
       attr.options.length > 1 && // must have multiple options
       attr.name.toLowerCase() !== 'ships from' // exclude shipping location
     );
+    
+    const hidden = product.attributes.filter(attr => 
+      attr.variation && // must be a variation attribute
+      (attr.options.length === 1 || attr.name.toLowerCase() === 'ships from') // single option or ships from
+    );
+    
+    return { visibleAttributes: visible, hiddenAttributes: hidden };
   }, [product.attributes]);
 
-  // Find matching variation based on selected attributes
-  const matchedVariation = useMemo(() => {
-    if (!product.variations || !Array.isArray(product.variations) || 
-        Object.keys(selectedAttributes).length === 0) {
-      return null;
-    }
+  // Helper function to find matching variation
+  const findMatchingVariation = React.useMemo(() => {
+    return (attrs: Record<string, string>): ProductVariation | null => {
+      if (!product.variations || !Array.isArray(product.variations)) {
+        return null;
+      }
 
-    return product.variations.find(variation => {
-      if (!variation.attributes || !Array.isArray(variation.attributes)) {
-        return false;
+      return product.variations.find(variation => {
+        if (!variation.attributes || !Array.isArray(variation.attributes)) {
+          return false;
+        }
+        
+        return variation.attributes.every((attr: any) => {
+          // If attribute is not in our selection, it's not a match
+          if (!attrs[attr.name.toLowerCase()]) {
+            return false;
+          }
+          
+          // If attribute value doesn't match our selection, it's not a match
+          return attrs[attr.name.toLowerCase()] === attr.option;
+        });
+      }) || null;
+    };
+  }, [product.variations]);
+
+  // Auto-select single options on component mount
+  useEffect(() => {
+    // Only run initialization once on mount
+    const initialSelections: Record<string, string> = {};
+    
+    // Auto-select all hidden attributes (they only have one option)
+    hiddenAttributes.forEach((attr: any) => {
+      if (attr.options.length > 0) {
+        initialSelections[attr.name.toLowerCase()] = attr.options[0];
+      }
+    });
+    
+    if (Object.keys(initialSelections).length > 0) {
+      setSelectedAttributes(initialSelections);
+      
+      // Find matching variation with these initial selections
+      const matchedVariation = findMatchingVariation(initialSelections);
+      if (matchedVariation && onVariationSelect) {
+        onVariationSelect(matchedVariation);
       }
       
-      return variation.attributes.every(attr => {
-        const attrName = attr.name.toLowerCase();
-        return selectedAttributes[attrName] === attr.option;
-      });
-    });
-  }, [selectedAttributes, product.variations]);
+      // Dispatch event for gallery
+      try {
+        const event = new CustomEvent('variant-attribute-change', {
+          detail: initialSelections
+        });
+        window.dispatchEvent(event);
+      } catch (error) {
+        console.error('Error dispatching initial variant event:', error);
+      }
+    }
+  // Run only once on mount - removing dependencies that cause re-renders
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Update selected attributes and notify parent
   const handleSelect = (attrName: string, option: string) => {
@@ -50,36 +98,56 @@ export const ProductAttributes: React.FC<ProductAttributesProps> = ({
       ...selectedAttributes,
       [attrName.toLowerCase()]: option 
     };
+    
     setSelectedAttributes(newAttributes);
     
-    // Find and notify parent of matched variation
-    if (product.variations && Array.isArray(product.variations)) {
-      const variation = product.variations.find(v => {
-        if (!v.attributes || !Array.isArray(v.attributes)) return false;
-        return v.attributes.every(attr => 
-          newAttributes[attr.name.toLowerCase()] === attr.option
-        );
+    // Notify parent component of the matched variation
+    if (onVariationSelect) {
+      const newMatchedVariation = findMatchingVariation(newAttributes);
+      onVariationSelect(newMatchedVariation);
+    }
+    
+    // Dispatch custom event for VariantGalleryWrapper
+    // This ensures direct communication between components
+    try {
+      const event = new CustomEvent('variant-attribute-change', {
+        detail: newAttributes
       });
-      onVariationSelect?.(variation || null);
-    } else {
-      onVariationSelect?.(null);
+      window.dispatchEvent(event);
+      console.log('Dispatched variant-attribute-change event:', newAttributes);
+    } catch (error) {
+      console.error('Error dispatching variant event:', error);
     }
   };
 
   // Reset selections
   const handleReset = (attrName: string) => {
-    const { [attrName.toLowerCase()]: _, ...rest } = selectedAttributes;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { [attrName.toLowerCase()]: removed, ...rest } = selectedAttributes;
     setSelectedAttributes(rest);
     onVariationSelect?.(null);
+    
+    // Dispatch a reset event for the gallery
+    try {
+      const event = new CustomEvent('variant-attribute-change', {
+        detail: rest // Pass the remaining attributes, if any
+      });
+      window.dispatchEvent(event);
+      console.log('Dispatched reset event for gallery:', rest);
+    } catch (error) {
+      console.error('Error dispatching reset event:', error);
+    }
   };
 
-  if (!validAttributes.length) {
-    return null; // Don't render anything if no valid attributes
+  // Don't render if no attributes at all
+  if (!visibleAttributes.length && !hiddenAttributes.length) {
+    return null;
   }
 
   return (
     <div className="space-y-4">
-      {validAttributes.map(attr => (
+      {/* Visible attributes that need user selection */}
+      {visibleAttributes.map(attr => (
         <div key={attr.name} className="attribute-group">
           <div className="flex justify-between items-center mb-2">
             <p className="font-medium text-gray-900 dark:text-gray-100">
@@ -98,9 +166,9 @@ export const ProductAttributes: React.FC<ProductAttributesProps> = ({
             {attr.options.map(option => (
               <button
                 key={option}
-                onClick={() => handleSelect(attr.name, option)}
+                onClick={() => handleSelect(attr.name, option.toString())}
                 className={`px-4 py-2 text-sm border rounded-full transition-colors
-                  ${selectedAttributes[attr.name.toLowerCase()] === option
+                  ${selectedAttributes[attr.name.toLowerCase()] === option.toString()
                     ? 'bg-purple-600 text-white border-purple-600 dark:bg-purple-500 dark:border-purple-500'
                     : 'bg-white text-gray-900 border-gray-200 hover:border-purple-400 dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700 dark:hover:border-purple-400'
                   }`}
@@ -111,6 +179,32 @@ export const ProductAttributes: React.FC<ProductAttributesProps> = ({
           </div>
         </div>
       ))}
+      
+      {/* Hidden attributes (single option or ships from) - hidden with CSS but still in the DOM */}
+      <div className="hidden">
+        {hiddenAttributes.map(attr => (
+          <div key={attr.name} className="attribute-group">
+            <p className="font-medium text-gray-900 dark:text-gray-100">
+              {attr.name}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {attr.options.map(option => (
+                <button
+                  key={option}
+                  // Auto-selected by useEffect, no onClick needed
+                  className={`px-4 py-2 text-sm border rounded-full
+                    ${selectedAttributes[attr.name.toLowerCase()] === option.toString()
+                      ? 'bg-purple-600 text-white border-purple-600'
+                      : 'bg-white text-gray-900 border-gray-200'
+                    }`}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };

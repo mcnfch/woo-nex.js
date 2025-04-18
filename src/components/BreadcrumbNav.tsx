@@ -14,7 +14,7 @@ const BreadcrumbNav: React.FC<BreadcrumbNavProps> = ({ product }) => {
 
   return (
     <nav className="flex mb-5" aria-label="Breadcrumb">
-      <ol className="inline-flex items-center space-x-1 md:space-x-3">
+      <ol className="inline-flex items-center space-x-1 md:space-x-3 text-xs md:text-base">
         <li className="inline-flex items-center">
           <Link 
             href="/" 
@@ -27,7 +27,7 @@ const BreadcrumbNav: React.FC<BreadcrumbNavProps> = ({ product }) => {
         {mainCategory && (
           <li>
             <div className="flex items-center">
-              <span className="mx-2 text-gray-400 dark:text-white">/</span>
+              <span className="mx-1 md:mx-2 text-gray-400 dark:text-white">/</span>
               <Link 
                 href={`/product-category/${mainCategory.slug}`}
                 className="text-gray-700 hover:text-purple-600 dark:text-white dark:hover:text-purple-300"
@@ -40,7 +40,7 @@ const BreadcrumbNav: React.FC<BreadcrumbNavProps> = ({ product }) => {
         
         <li>
           <div className="flex items-center">
-            <span className="mx-2 text-gray-400 dark:text-white">/</span>
+            <span className="mx-1 md:mx-2 text-gray-400 dark:text-white">/</span>
             <span className="text-gray-500 dark:text-white">{product.name}</span>
           </div>
         </li>

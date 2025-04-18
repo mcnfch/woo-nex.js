@@ -1,7 +1,9 @@
 import React from 'react';
-import { getCategories, getProducts, Category, Product } from '../../../lib/woocommerce';
+import { getCategories, getProducts, Category } from '../../../lib/woocommerce';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import { generateCategorySchema } from '../../../lib/schema';
+import JsonLdSchema from '../../../components/JsonLdSchema';
 // Removing unused imports
 // import Image from 'next/image';
 // import CategoryGrid from '../../../components/CategoryGrid';
@@ -51,8 +53,12 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
   // Fetch products for this category
   const products = await getProducts(category.id);
   
+  // Generate category schema
+  const categorySchema = generateCategorySchema(category, products);
+  
   return (
     <div className="container mx-auto px-4 md:py-8 pt-20 pb-8 md:pt-8">
+      <JsonLdSchema data={categorySchema} />
       <div className="mb-8">
         <nav className="flex mb-5" aria-label="Breadcrumb">
           <ol className="inline-flex items-center space-x-1 md:space-x-3">
