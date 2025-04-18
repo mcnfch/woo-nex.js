@@ -1,36 +1,108 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# WooNext - Headless WooCommerce with Next.js
+
+A modern, high-performance e-commerce storefront built with Next.js and headless WooCommerce. This project provides a complete solution for running an online store with fast page loads, responsive design, and an excellent user experience.
+
+## Features
+
+- **Headless Architecture**: Decoupled frontend and backend for better performance and flexibility
+- **Next.js App Router**: Leveraging the latest Next.js features with TypeScript
+- **WooCommerce Integration**: Full product catalog, categories, and ordering capabilities
+- **Redis-Powered Search**: Fast, efficient product search with word-level indexing
+- **Shopping Experience**:
+  - Modern slide-out shopping bag
+  - Persistent cart across sessions
+  - Responsive product gallery with image zoom
+  - Variant selection and quantity management
+- **Stripe Payment Integration**: Secure checkout with Stripe
+- **User Account Management**:
+  - Login/register functionality
+  - Order history
+  - Address management
+- **Content Management**:
+  - Blog integration
+  - SEO-friendly content
+- **Performance Optimized**:
+  - Fast page loads
+  - Image optimization
+  - Efficient data fetching
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- Node.js 18.0 or later
+- Redis server running locally or remotely
+- WooCommerce store with REST API access
+
+### Environment Setup
+
+Create a `.env.local` file in the root directory with the following variables:
+
+```
+# WooCommerce API
+NEXT_PUBLIC_WOOCOMMERCE_URL=https://your-woocommerce-site.com
+NEXT_PUBLIC_WOOCOMMERCE_KEY=your_consumer_key
+NEXT_PUBLIC_WOOCOMMERCE_SECRET=your_consumer_secret
+
+# Redis Configuration (default values shown)
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_PASSWORD=
+
+# Stripe (for payment processing)
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
+STRIPE_SECRET_KEY=your_stripe_secret_key
+STRIPE_WEBHOOK_SECRET=your_stripe_webhook_secret
+
+# Session
+SESSION_SECRET=your_session_secret
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Installation
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+# Install dependencies
+npm install
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# Run the development server
+npm run dev
+```
 
-## Learn More
+Open [http://localhost:1224](http://localhost:1224) with your browser to see the result.
 
-To learn more about Next.js, take a look at the following resources:
+### Production Deployment
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+# Build the application
+npm run build
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# Start the production server
+npm start
+```
 
-## Deploy on Vercel
+## Redis Search System
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The project includes a Redis-based search system that provides fast product search capabilities:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Full product data stored as JSON
+- Word-level indexing for product names
+- Category-based filtering
+- Update script designed to be run by a CRON job
+
+To load products into Redis, run:
+
+```bash
+node src/scripts/load-products-to-redis.js
+```
+
+## Technical Architecture
+
+- **TypeScript**: Type-safe development environment
+- **Tailwind CSS**: Utility-first CSS framework for styling
+- **Redis**: Session management and search functionality
+- **Stripe**: Payment processing integration
+- **WooCommerce REST API**: Product and order management
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
