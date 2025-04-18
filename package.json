@@ -6,7 +6,8 @@
     "dev": "next dev -p 1224",
     "build": "next build",
     "start": "next start -p 1224",
-    "lint": "next lint"
+    "lint": "next lint",
+    "load-products": "node src/scripts/load-products-to-redis.js"
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.6.1",
@@ -14,6 +15,7 @@
     "@stripe/stripe-js": "^7.1.0",
     "@types/react-image-gallery": "^1.2.4",
     "@woocommerce/woocommerce-rest-api": "^1.0.1",
+    "cookies-next": "^4.1.0",
     "dotenv": "^16.5.0",
     "html-react-parser": "^5.2.3",
     "ioredis": "^5.6.1",
@@ -36,6 +38,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@types/ioredis": "^5.0.0",
     "@types/node": "^20",
     "@types/nodemailer": "^6.4.17",
     "@types/react": "^19",
