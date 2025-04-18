@@ -44,3 +44,7 @@ next-env.d.ts
 # scripts containing sensitive data or test utilities
 /scripts
 /src/scripts
+
+# archive and lighthouse directories
+/archive
+/lighthouse
