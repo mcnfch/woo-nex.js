@@ -78,6 +78,42 @@ export default function ReturnPage({
   const orderCreationAttempted = useRef<boolean>(false);
   const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
   const [showConfetti, setShowConfetti] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [customerId, setCustomerId] = useState<number | null>(null);
+  
+  // Check if user is logged in
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      try {
+        const response = await fetch('/api/customer/me', {
+          credentials: 'include', // Ensure cookies are sent with the request
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (response.ok) {
+          const customerData = await response.json();
+          setIsLoggedIn(true);
+          // Handle both string and number formats for customer ID
+          const id = customerData.id || customerData.ID;
+          setCustomerId(id ? Number(id) : null);
+          console.log('Customer authenticated:', { id: Number(id) });
+        } else {
+          setIsLoggedIn(false);
+          setCustomerId(null);
+          console.log('Customer not authenticated');
+        }
+      } catch (error) {
+        console.error('Error checking auth status:', error);
+        setIsLoggedIn(false);
+        setCustomerId(null);
+      }
+    };
+
+    // Run auth check immediately
+    checkAuthStatus();
+  }, []);
   
   // Set window size for confetti
   useEffect(() => {
@@ -124,6 +160,9 @@ export default function ReturnPage({
             lastName = nameParts.slice(1).join(' ') || '';
           }
           
+          // Log authentication status before creating order
+          console.log('Creating order with auth status:', { isLoggedIn, customerId });
+          
           // Prepare payment data for order creation
           const paymentData = {
             sessionId,
@@ -144,7 +183,9 @@ export default function ReturnPage({
             discountAmount: discountAmount || 0,
             // Include actual line items and total from Stripe
             stripeLineItems: lineItems || [],
-            amountTotal: amount_total || 0
+            amountTotal: amount_total || 0,
+            // Include customer ID if user is logged in
+            customerId: isLoggedIn && customerId ? Number(customerId) : null
           };
           
           // Call the API to create the order
@@ -182,7 +223,7 @@ export default function ReturnPage({
       
       createOrder();
     }
-  }, [status, sessionId, paymentIntentId, customerDetails, clearBag, orderCreated, discountInfo, discountAmount, lineItems, amount_total]);
+  }, [status, sessionId, paymentIntentId, customerDetails, clearBag, orderCreated, discountInfo, discountAmount, lineItems, amount_total, isLoggedIn, customerId]);
 
   // Redirect to home if status is open
   useEffect(() => {

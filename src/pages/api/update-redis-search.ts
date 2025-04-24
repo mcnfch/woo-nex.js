@@ -2,11 +2,15 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import Redis from 'ioredis';
 import { getProducts, decodeHtmlEntities } from '../../lib/woocommerce';
 
-// Create Redis client instance for search functionality
+// Create Redis client instance for search functionality with type assertions
 const redisSearch = new Redis({
   port: 6380,
   host: 'localhost',
-});
+}) as Redis & {
+  keys(pattern: string): Promise<string[]>;
+  del(...keys: string[]): Promise<number>;
+  quit(): Promise<'OK'>;
+};
 
 type UpdateResponse = {
   success: boolean;
@@ -73,13 +77,13 @@ export default async function handler(
       
       // Index by name (lowercase for case-insensitive search)
       if (product.name) {
-        pipeline.set(`product_name:${product.name.toLowerCase()}`, product.id);
+        pipeline.set(`product_name:${product.name.toLowerCase()}`, product.id.toString());
         
         // Add word-by-word indexing for partial matches
         const words = product.name.toLowerCase().split(' ');
         for (const word of words) {
           if (word.length > 2) { // Only index words longer than 2 characters
-            pipeline.sadd(`word:${word}`, product.id);
+            pipeline.sadd(`word:${word}`, product.id.toString());
           }
         }
       }
@@ -87,9 +91,9 @@ export default async function handler(
       // Index by category
       if (product.categories && product.categories.length > 0) {
         for (const category of product.categories) {
-          pipeline.sadd(`category:${category.id}`, product.id);
+          pipeline.sadd(`category:${category.id}`, product.id.toString());
           if (category.name) {
-            pipeline.sadd(`category_name:${category.name.toLowerCase()}`, product.id);
+            pipeline.sadd(`category_name:${category.name.toLowerCase()}`, product.id.toString());
           }
         }
       }

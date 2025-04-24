@@ -25,6 +25,73 @@ interface CartItem {
   attributes?: string;
 }
 
+// Helper function to extract user ID from token
+async function getUserIdFromToken(token: string): Promise<number | null> {
+  try {
+    // Try to validate with WordPress JWT validation endpoint
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_WOOCOMMERCE_URL}/wp-json/jwt-auth/v1/token/validate`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      }
+    );
+
+    if (response.ok) {
+      const data = await response.json();
+      
+      // Extract user ID from response if available
+      if (data && data.data && data.data.id) {
+        return Number(data.data.id);
+      }
+    }
+    
+    // If validation fails or doesn't return user ID, try to decode token
+    const base64Url = token.split('.')[1];
+    if (base64Url) {
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join(''));
+      
+      const payload = JSON.parse(jsonPayload);
+      
+      // Extract user ID from payload
+      if (payload.data && payload.data.user && payload.data.user.id) {
+        return Number(payload.data.user.id);
+      }
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Error extracting user ID from token:', error);
+    return null;
+  }
+}
+
+// Helper function to get customer ID from user ID
+async function getCustomerIdFromUserId(userId: number): Promise<number | null> {
+  try {
+    // Get all customers
+    const { data: customers } = await api.get('customers');
+    
+    // Find the customer with matching user ID
+    const customer = customers.find((c: any) => Number(c.id) === userId);
+    
+    if (customer) {
+      return Number(customer.id);
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Error getting customer ID from user ID:', error);
+    return null;
+  }
+}
+
 /**
  * API endpoint to create a WooCommerce order from Redis cart data
  */
@@ -117,6 +184,54 @@ export default async function handler(
         }
       ]
     };
+
+    // Check for authentication token in cookies
+    let customerId: number | null = null;
+    const authToken = req.cookies.woo_token;
+
+    if (authToken) {
+      try {
+        // Try to parse the token if it's a JSON string (some implementations store token info as JSON)
+        let token = authToken;
+        try {
+          const tokenData = JSON.parse(authToken);
+          if (tokenData.id) {
+            // If token is stored as JSON with ID, use that directly
+            customerId = Number(tokenData.id);
+            console.log('Found customer ID in token JSON:', customerId);
+          } else if (tokenData.token) {
+            // If token is stored with a token property, use that for JWT validation
+            token = tokenData.token;
+          }
+        } catch {
+          // If not JSON, use the token string directly for JWT validation
+          const userId = await getUserIdFromToken(token);
+          if (userId) {
+            customerId = await getCustomerIdFromUserId(userId);
+            console.log('Found customer ID from JWT token:', customerId);
+          }
+        }
+      } catch (error) {
+        console.error('Error processing authentication token:', error);
+      }
+    }
+
+    // If we have a customer ID from the token, use it
+    if (customerId) {
+      orderData.customer_id = customerId;
+      console.log('Creating order for authenticated customer:', customerId);
+    } else if (paymentData.customerId && typeof paymentData.customerId !== 'undefined') {
+      // Fallback to customer ID from payment data if provided
+      const id = Number(paymentData.customerId);
+      if (!isNaN(id) && id > 0) {
+        orderData.customer_id = id;
+        console.log('Creating order using customer ID from payment data:', id);
+      } else {
+        console.log('Invalid customer ID format in payment data:', paymentData.customerId);
+      }
+    } else {
+      console.log('Creating guest order (no customer ID)');
+    }
 
     // Add discount information if available
     if (paymentData.discountInfo && paymentData.discountAmount && paymentData.discountAmount > 0) {

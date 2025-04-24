@@ -12,17 +12,8 @@ export default function ShippingPage() {
           
           <h3 className="text-xl font-semibold mt-6 mb-3">Shipping Methods and Timeframes</h3>
           <ul>
-            <li><strong>Standard Shipping:</strong> 5-7 business days</li>
-            <li><strong>Express Shipping:</strong> 2-3 business days</li>
-            <li><strong>International Shipping:</strong> 7-14 business days (may be subject to customs delays)</li>
-          </ul>
-          
-          <h3 className="text-xl font-semibold mt-6 mb-3">Shipping Rates</h3>
-          <p>Shipping rates are calculated based on the weight, dimensions, and destination of your order:</p>
-          <ul>
-            <li><strong>Standard Shipping:</strong> $5.99 for orders under $50, Free for orders over $50</li>
-            <li><strong>Express Shipping:</strong> $12.99 flat rate</li>
-            <li><strong>International Shipping:</strong> Starting at $15.99, calculated at checkout</li>
+            <li><strong>Standard Shipping:</strong> 7-14 business days</li>
+             (may be subject to customs delays)
           </ul>
           
           <h3 className="text-xl font-semibold mt-6 mb-3">Tracking Information</h3>

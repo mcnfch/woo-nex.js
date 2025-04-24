@@ -1,13 +1,15 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Category } from '../lib/woocommerce';
-import ThemeToggle from './ThemeToggle';
+// Lazy load non-critical components
+const ThemeToggle = lazy(() => import('./ThemeToggle'));
 import { usePathname } from 'next/navigation';
-import ShoppingBag from './ShoppingBag';
+const ShoppingBag = lazy(() => import('./ShoppingBag'));
 import { useShoppingBag } from '../context/ShoppingBagContext';
+import { searchProducts } from '../app/actions/search';
 
 interface HeaderClientProps {
   categories: Category[];
@@ -141,7 +143,7 @@ const HeaderClient = ({ categories, topLevelCategories }: HeaderClientProps) => 
     );
   };
 
-  // Handle search input change
+  // Handle search input change with improved performance
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
     setSearchQuery(query);
@@ -156,20 +158,40 @@ const HeaderClient = ({ categories, topLevelCategories }: HeaderClientProps) => 
       return;
     }
     
+    // Only search if query is at least 2 characters - immediate UI feedback
+    if (query.length < 2) {
+      setIsSearching(false);
+      setSearchResults([]);
+      return;
+    }
+    
     // Set a timeout to avoid making too many requests while typing
     setIsSearching(true);
-    searchTimeoutRef.current = setTimeout(() => {
-      fetch(`/api/search?query=${encodeURIComponent(query)}`)
-        .then(response => response.json())
-        .then(data => {
-          setSearchResults(data.products);
-          setIsSearching(false);
-        })
-        .catch(error => {
-          console.error('Search error:', error);
-          setIsSearching(false);
-        });
-    }, 200);
+    
+    // Increase debounce time to 400ms to reduce number of searches
+    searchTimeoutRef.current = setTimeout(async () => {
+      try {
+        // Use the server action directly instead of API fetch
+        const products = await searchProducts(query);
+        
+        // Process results in smaller batches to avoid blocking
+        // Immediately show first few results for perceived performance
+        const firstBatch = products.slice(0, 3);
+        setSearchResults(firstBatch);
+        
+        // After a slight delay, show the rest of the results
+        if (products.length > 3) {
+          setTimeout(() => {
+            setSearchResults(products);
+          }, 50);
+        }
+        
+        setIsSearching(false);
+      } catch (error) {
+        console.error('Search error:', error);
+        setIsSearching(false);
+      }
+    }, 400);
   };
 
   // Handle scroll event for endless scrolling
@@ -193,6 +215,9 @@ const HeaderClient = ({ categories, topLevelCategories }: HeaderClientProps) => 
   return (
     <header className="bg-black dark:bg-gray-900 text-white dark:text-gray-200 py-4 fixed top-0 left-0 right-0 z-50 shadow-md">
       <div className="container mx-auto px-4">
+        <div className="bg-pink-200 text-black font-bold py-1 text-center text-sm mb-4 -mt-4 -mx-4 tracking-wider">
+          FREE SHIPPING ON ALL ORDERS
+        </div>
         {/* Modified layout for mobile - Reorganizing the header structure */}
         <div className={`flex ${isMobile ? 'flex-col' : 'flex-row justify-between'} items-center`}>
           {/* Logo */}
@@ -281,25 +306,37 @@ const HeaderClient = ({ categories, topLevelCategories }: HeaderClientProps) => 
                   </div>
                   
                   {/* Shopping Bag Icon */}
-                  <button 
-                    className="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                    aria-label="Shopping Bag"
-                    onClick={openBag}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
-                      <line x1="3" y1="6" x2="21" y2="6"></line>
-                      <path d="M16 10a4 4 0 0 1-8 0"></path>
-                    </svg>
-                    {bagCount > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-purple-600 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[1.25rem] text-center border-2 border-white dark:border-gray-900">
-                        {bagCount}
-                      </span>
-                    )}
-                  </button>
+                  <Suspense fallback={
+                    <button className="relative p-2 rounded-full transition-colors">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M4 7V19C4 19.5304 4.21071 20.0391 4.58579 20.4142C4.96086 20.7893 5.46957 21 6 21H18C18.5304 21 19.0391 20.7893 19.4142 20.4142C19.7893 20.0391 20 19.5304 20 19V7H4Z"></path>
+                        <path d="M16 10C16 11.0609 15.5786 12.0783 14.8284 12.8284C14.0783 13.5786 13.0609 14 12 14C10.9391 14 9.92172 13.5786 9.17157 12.8284C8.42143 12.0783 8 11.0609 8 10"></path>
+                        <path d="M8 7V5C8 3.93913 8.42143 2.92172 9.17157 2.17157C9.92172 1.42143 10.9391 1 12 1C13.0609 1 14.0783 1.42143 14.8284 2.17157C15.5786 2.92172 16 3.93913 16 5V7"></path>
+                      </svg>
+                    </button>
+                  }>
+                    <button 
+                      className="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                      aria-label="Shopping Bag"
+                      onClick={openBag}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M4 7V19C4 19.5304 4.21071 20.0391 4.58579 20.4142C4.96086 20.7893 5.46957 21 6 21H18C18.5304 21 19.0391 20.7893 19.4142 20.4142C19.7893 20.0391 20 19.5304 20 19V7H4Z"></path>
+                        <path d="M16 10C16 11.0609 15.5786 12.0783 14.8284 12.8284C14.0783 13.5786 13.0609 14 12 14C10.9391 14 9.92172 13.5786 9.17157 12.8284C8.42143 12.0783 8 11.0609 8 10"></path>
+                        <path d="M8 7V5C8 3.93913 8.42143 2.92172 9.17157 2.17157C9.92172 1.42143 10.9391 1 12 1C13.0609 1 14.0783 1.42143 14.8284 2.17157C15.5786 2.92172 16 3.93913 16 5V7"></path>
+                      </svg>
+                      {bagCount > 0 && (
+                        <span className="absolute -top-1 -right-1 bg-purple-600 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[1.25rem] text-center border-2 border-white dark:border-gray-900">
+                          {bagCount}
+                        </span>
+                      )}
+                    </button>
+                  </Suspense>
                   
                   {/* Theme Toggle */}
-                  <ThemeToggle />
+                  <Suspense fallback={<div className="w-10 h-10"></div>}>
+                    <ThemeToggle />
+                  </Suspense>
                 </div>
 
                 {/* Hamburger menu button - always on the right */}
@@ -452,25 +489,37 @@ const HeaderClient = ({ categories, topLevelCategories }: HeaderClientProps) => 
                 </div>
                 
                 {/* Shopping Bag Icon */}
-                <button 
-                  className="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                  aria-label="Shopping Bag"
-                  onClick={openBag}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
-                    <line x1="3" y1="6" x2="21" y2="6"></line>
-                    <path d="M16 10a4 4 0 0 1-8 0"></path>
-                  </svg>
-                  {bagCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-purple-600 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[1.25rem] text-center border-2 border-white dark:border-gray-900">
-                      {bagCount}
-                    </span>
-                  )}
-                </button>
+                <Suspense fallback={
+                  <button className="relative p-2 rounded-full transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M4 7V19C4 19.5304 4.21071 20.0391 4.58579 20.4142C4.96086 20.7893 5.46957 21 6 21H18C18.5304 21 19.0391 20.7893 19.4142 20.4142C19.7893 20.0391 20 19.5304 20 19V7H4Z"></path>
+                      <path d="M16 10C16 11.0609 15.5786 12.0783 14.8284 12.8284C14.0783 13.5786 13.0609 14 12 14C10.9391 14 9.92172 13.5786 9.17157 12.8284C8.42143 12.0783 8 11.0609 8 10"></path>
+                      <path d="M8 7V5C8 3.93913 8.42143 2.92172 9.17157 2.17157C9.92172 1.42143 10.9391 1 12 1C13.0609 1 14.0783 1.42143 14.8284 2.17157C15.5786 2.92172 16 3.93913 16 5V7"></path>
+                    </svg>
+                  </button>
+                }>
+                  <button 
+                    className="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                    aria-label="Shopping Bag"
+                    onClick={openBag}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M4 7V19C4 19.5304 4.21071 20.0391 4.58579 20.4142C4.96086 20.7893 5.46957 21 6 21H18C18.5304 21 19.0391 20.7893 19.4142 20.4142C19.7893 20.0391 20 19.5304 20 19V7H4Z"></path>
+                      <path d="M16 10C16 11.0609 15.5786 12.0783 14.8284 12.8284C14.0783 13.5786 13.0609 14 12 14C10.9391 14 9.92172 13.5786 9.17157 12.8284C8.42143 12.0783 8 11.0609 8 10"></path>
+                      <path d="M8 7V5C8 3.93913 8.42143 2.92172 9.17157 2.17157C9.92172 1.42143 10.9391 1 12 1C13.0609 1 14.0783 1.42143 14.8284 2.17157C15.5786 2.92172 16 3.93913 16 5V7"></path>
+                    </svg>
+                    {bagCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-purple-600 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[1.25rem] text-center border-2 border-white dark:border-gray-900">
+                        {bagCount}
+                      </span>
+                    )}
+                  </button>
+                </Suspense>
                 
                 {/* Theme Toggle */}
-                <ThemeToggle />
+                <Suspense fallback={<div className="w-10 h-10"></div>}>
+                  <ThemeToggle />
+                </Suspense>
               </div>
             )}
           </div>
@@ -728,7 +777,9 @@ const HeaderClient = ({ categories, topLevelCategories }: HeaderClientProps) => 
         )}
 
         {/* Shopping Bag Slide-out */}
-        <ShoppingBag />
+        <Suspense fallback={<div className="w-10 h-10"></div>}>
+          <ShoppingBag />
+        </Suspense>
       </div>
     </header>
   );

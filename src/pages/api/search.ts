@@ -2,11 +2,14 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import Redis from 'ioredis';
 import { decodeHtmlEntities } from '../../lib/woocommerce';
 
-// Create Redis client instance for search
+// Create Redis client instance for search with type assertions
 const redisSearch = new Redis({
   port: 6380,
   host: 'localhost',
-});
+}) as Redis & {
+  get(key: string): Promise<string | null>;
+  smembers(key: string): Promise<string[]>;
+};
 
 type SearchResult = {
   products: any[];
@@ -53,20 +56,20 @@ export default async function handler(
       console.log(`Searching for word: ${word}`);
       const ids = await redisSearch.smembers(`word:${word}`);
       console.log(`Found ${ids.length} matches for word: ${word}`);
-      ids.forEach(id => productIds.add(id));
+      ids.forEach((id: string) => productIds.add(id));
       
       // Try partial word matches too (if word is 3+ characters)
       if (word.length >= 3) {
         const partialIds = await redisSearch.smembers(`partial:${word}`);
         console.log(`Found ${partialIds.length} partial matches for: ${word}`);
-        partialIds.forEach(id => productIds.add(id));
+        partialIds.forEach((id: string) => productIds.add(id));
       }
     }
     
     // Then try category name matches
     const categoryMatches = await redisSearch.smembers(`category_name:${searchTerm}`);
     console.log(`Found ${categoryMatches.length} category matches for: ${searchTerm}`);
-    categoryMatches.forEach(id => productIds.add(id));
+    categoryMatches.forEach((id: string) => productIds.add(id));
     
     // Get full product data for each ID
     const products = [];

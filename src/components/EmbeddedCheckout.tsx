@@ -8,8 +8,8 @@ import {
 import { loadStripe } from '@stripe/stripe-js';
 import { useShoppingBag } from '../context/ShoppingBagContext';
 
-// Initialize Stripe with the publishable key (using test key for development)
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY_TEST || '');
+// Initialize Stripe with the publishable key (using live key for production)
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '');
 
 export default function StripeEmbeddedCheckout() {
   const [clientSecret, setClientSecret] = useState<string>('');

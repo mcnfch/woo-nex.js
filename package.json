@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 1224",
+    "dev": "next dev -p 3040",
     "build": "next build",
-    "start": "next start -p 1224",
+    "start": "next start -p 3040",
     "lint": "next lint",
     "load-products": "node src/scripts/load-products-to-redis.js"
   },

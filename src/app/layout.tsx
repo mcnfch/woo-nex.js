@@ -1,11 +1,12 @@
-import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Metadata } from "next";
 import { Suspense } from 'react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { ShoppingBagProvider } from '../context/ShoppingBagContext';
 import { ThemeProvider } from '../components/theme-provider';
 import SalesBanner from '../components/SalesBanner';
+import Script from 'next/script';
 import "./globals.css";
 import { getCategories } from "../lib/woocommerce";
 
@@ -44,8 +45,18 @@ export default async function RootLayout({
               {children}
             </main>
             <Footer categories={categories} />
-            {/* Sales Banner - will only show based on cookie status */}
-            <SalesBanner />
+            
+            {/* Load SalesBanner with Suspense to avoid blocking */}
+            <Suspense fallback={null}>
+              <SalesBanner />
+            </Suspense>
+            
+            {/* Defer non-critical scripts */}
+            <Script 
+              src="/scripts/analytics.js" 
+              strategy="lazyOnload"
+              id="analytics-script"
+            />
           </ShoppingBagProvider>
         </ThemeProvider>
       </body>
