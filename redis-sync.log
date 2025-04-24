@@ -4282,3 +4282,24 @@ Storing products in Redis...
 Successfully stored 229 products in Redis
 Product loading completed successfully
 Redis connection closed
+Connected to Redis successfully
+Fetching products from WooCommerce API...
+Fetched page 1 with 20 products
+Fetched page 2 with 20 products
+Fetched page 3 with 20 products
+Fetched page 4 with 20 products
+Fetched page 5 with 20 products
+Fetched page 6 with 20 products
+Fetched page 7 with 20 products
+Fetched page 8 with 20 products
+Fetched page 9 with 20 products
+Fetched page 10 with 20 products
+Fetched page 11 with 20 products
+Fetched page 12 with 9 products
+Fetched page 13 with 0 products
+Total products fetched: 229
+Cleared 229 existing product records
+Storing products in Redis...
+Successfully stored 229 products in Redis
+Product loading completed successfully
+Redis connection closed

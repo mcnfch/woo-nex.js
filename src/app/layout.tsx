@@ -41,7 +41,7 @@ export default async function RootLayout({
         <ThemeProvider>
           <ShoppingBagProvider>
             <Header categories={categories} />
-            <main className="pt-20 md:pt-20">
+            <main className="pt-20 md:pt-20 mt-[15px]">
               {children}
             </main>
             <Footer categories={categories} />
