@@ -18,6 +18,10 @@ A modern, high-performance e-commerce storefront built with Next.js and headless
   - Login/register functionality
   - Order history
   - Address management
+- **Custom Design System**:
+  - Upload designs directly to WordPress media library
+  - Two custom design workflows: "Upload Your Design" and "Work with Our Designers"
+  - Secure file handling with size validation
 - **Content Management**:
   - Blog integration
   - SEO-friendly content
@@ -102,6 +106,56 @@ node src/scripts/load-products-to-redis.js
 - **Redis**: Session management and search functionality
 - **Stripe**: Payment processing integration
 - **WooCommerce REST API**: Product and order management
+- **WordPress REST API**: Media uploads and JWT authentication
+
+## Server Configuration
+
+### File Upload Configuration
+
+The application supports large file uploads (up to 64MB) for the custom design system. This requires proper server configuration:
+
+#### Nginx Configuration
+
+Add the following to your Nginx configuration for both frontend and backend servers:
+
+```nginx
+client_max_body_size 64M;
+```
+
+For the WordPress backend, also add this directive to the location blocks:
+
+```nginx
+location ~ ^/wp-json/ {
+    client_max_body_size 64M;
+    # other directives...
+}
+
+location ~ \.php$ {
+    client_max_body_size 64M;
+    # other directives...
+}
+```
+
+#### PHP Configuration
+
+For the WordPress backend, update PHP settings in `.user.ini` or `php.ini`:
+
+```ini
+upload_max_filesize = 64M
+post_max_size = 64M
+```
+
+#### WordPress Configuration
+
+Add to `wp-config.php`:
+
+```php
+define('WP_MEMORY_LIMIT', '256M');
+define('WP_MAX_MEMORY_LIMIT', '512M');
+@ini_set('upload_max_filesize', '64M');
+@ini_set('post_max_size', '64M');
+@ini_set('max_execution_time', '300');
+```
 
 ## License
 

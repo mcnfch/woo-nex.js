@@ -1,0 +1,116 @@
+# Google_Product_Taxonomy_Version: 2021-09-21
+166 - Apparel & Accessories
+1604 - Apparel & Accessories > Clothing
+5322 - Apparel & Accessories > Clothing > Activewear
+1831 - Apparel & Accessories > Clothing > Dresses
+5250 - Apparel & Accessories > Clothing > One-Pieces
+5249 - Apparel & Accessories > Clothing > One-Pieces > Jumpsuits & Rompers
+5334 - Apparel & Accessories > Clothing > Outerwear
+5490 - Apparel & Accessories > Clothing > Outerwear > Coats & Jackets
+5514 - Apparel & Accessories > Clothing > Outerwear > Rainwear
+5389 - Apparel & Accessories > Clothing > Outerwear > Vests
+5387 - Apparel & Accessories > Clothing > Outerwear > Snow Pants & Suits
+5182 - Apparel & Accessories > Clothing > Pants
+5183 - Apparel & Accessories > Clothing > Shirts & Tops
+5709 - Apparel & Accessories > Clothing > Shirts & Tops > Button-Down Shirts
+5711 - Apparel & Accessories > Clothing > Shirts & Tops > Jerseys
+5184 - Apparel & Accessories > Clothing > Shirts & Tops > Polo Shirts
+5713 - Apparel & Accessories > Clothing > Shirts & Tops > Sweatshirts
+5714 - Apparel & Accessories > Clothing > Shirts & Tops > T-Shirts
+5715 - Apparel & Accessories > Clothing > Shirts & Tops > Tank Tops
+5181 - Apparel & Accessories > Clothing > Shorts
+5344 - Apparel & Accessories > Clothing > Skirts
+5345 - Apparel & Accessories > Clothing > Skirts > Knee-Length Skirts
+5346 - Apparel & Accessories > Clothing > Skirts > Long Skirts
+5347 - Apparel & Accessories > Clothing > Skirts > Mini Skirts
+5348 - Apparel & Accessories > Clothing > Skirts > Skorts
+5179 - Apparel & Accessories > Clothing > Sleepwear & Loungewear
+5178 - Apparel & Accessories > Clothing > Sleepwear & Loungewear > Loungewear
+5177 - Apparel & Accessories > Clothing > Sleepwear & Loungewear > Nightgowns
+5176 - Apparel & Accessories > Clothing > Sleepwear & Loungewear > Pajamas
+5175 - Apparel & Accessories > Clothing > Sleepwear & Loungewear > Robes
+5180 - Apparel & Accessories > Clothing > Suits
+5349 - Apparel & Accessories > Clothing > Suits > Pantsuits
+5350 - Apparel & Accessories > Clothing > Suits > Skirt Suits
+5351 - Apparel & Accessories > Clothing > Suits > Tuxedos
+5185 - Apparel & Accessories > Clothing > Swimwear
+5186 - Apparel & Accessories > Clothing > Underwear & Socks
+5187 - Apparel & Accessories > Clothing > Underwear & Socks > Bras
+5188 - Apparel & Accessories > Clothing > Underwear & Socks > Underwear
+5190 - Apparel & Accessories > Clothing > Underwear & Socks > Socks
+5191 - Apparel & Accessories > Clothing > Uniforms
+5192 - Apparel & Accessories > Clothing > Uniforms > Military Uniforms
+5193 - Apparel & Accessories > Clothing > Uniforms > School Uniforms
+5194 - Apparel & Accessories > Clothing > Uniforms > Sports Uniforms
+5195 - Apparel & Accessories > Clothing > Uniforms > Work Uniforms
+5196 - Apparel & Accessories > Clothing > Wedding & Bridal Party Dresses
+5197 - Apparel & Accessories > Clothing > Wedding & Bridal Party Dresses > Bridal Party Dresses
+5198 - Apparel & Accessories > Clothing > Wedding & Bridal Party Dresses > Wedding Dresses
+5352 - Apparel & Accessories > Clothing > Costumes & Accessories
+5353 - Apparel & Accessories > Clothing > Costumes & Accessories > Costumes
+5354 - Apparel & Accessories > Clothing > Costumes & Accessories > Costume Accessories
+167 - Apparel & Accessories > Clothing Accessories
+168 - Apparel & Accessories > Clothing Accessories > Scarves & Shawls
+169 - Apparel & Accessories > Clothing Accessories > Sunglasses
+170 - Apparel & Accessories > Clothing Accessories > Ties
+171 - Apparel & Accessories > Clothing Accessories > Gloves & Mittens
+172 - Apparel & Accessories > Clothing Accessories > Hats
+173 - Apparel & Accessories > Clothing Accessories > Belts
+174 - Apparel & Accessories > Clothing Accessories > Hair Accessories
+175 - Apparel & Accessories > Clothing Accessories > Handbags & Wallets
+176 - Apparel & Accessories > Clothing Accessories > Keychains
+177 - Apparel & Accessories > Shoes
+178 - Apparel & Accessories > Shoes > Shoes
+179 - Apparel & Accessories > Shoes > Boots
+180 - Apparel & Accessories > Shoes > Sandals
+181 - Apparel & Accessories > Shoes > Slippers
+632 - Home & Garden
+633 - Home & Garden > Bathroom
+634 - Home & Garden > Bedroom
+635 - Home & Garden > Bedroom > Bedroom Sets
+636 - Home & Garden > Bedroom > Beds & Accessories
+637 - Home & Garden > Bedroom > Mattresses
+638 - Home & Garden > Bedroom > Nightstands
+639 - Home & Garden > Decor
+640 - Home & Garden > Decor > Artificial Plants & Flowers
+641 - Home & Garden > Decor > Baskets
+642 - Home & Garden > Decor > Candles & Home Fragrance
+643 - Home & Garden > Decor > Candles & Home Fragrance > Air Fresheners
+644 - Home & Garden > Decor > Candles & Home Fragrance > Candle & Oil Warmers
+645 - Home & Garden > Decor > Candles & Home Fragrance > Candles
+646 - Home & Garden > Decor > Candles & Home Fragrance > Incense
+647 - Home & Garden > Decor > Clocks
+648 - Home & Garden > Decor > Curtains & Drapes
+649 - Home & Garden > Decor > Fountains & Ponds
+650 - Home & Garden > Decor > Frames
+651 - Home & Garden > Decor > Holiday & Seasonal Decorations
+652 - Home & Garden > Decor > Home Fragrances
+653 - Home & Garden > Decor > Mirrors
+654 - Home & Garden > Decor > Plaques
+655 - Home & Garden > Decor > Posters, Prints, & Visual Artwork
+656 - Home & Garden > Decor > Rugs
+657 - Home & Garden > Decor > Tapestries
+658 - Home & Garden > Decor > Vases
+659 - Home & Garden > Decor > Wind Chimes
+660 - Home & Garden > Decor > Window Treatments
+661 - Home & Garden > Decor > Window Treatments > Blinds & Shades
+662 - Home & Garden > Decor > Window Treatments > Curtain Rods
+663 - Home & Garden > Decor > Window Treatments > Curtains & Drapes
+664 - Home & Garden > Decor > Window Treatments > Window Films
+665 - Home & Garden > Decor > Window Treatments > Window Screens
+666 - Home & Garden > Decor > World Globes
+667 - Home & Garden > Fireplace
+668 - Home & Garden > Fireplace > Fireplace Screens & Doors
+669 - Home & Garden > Fireplace > Fireplaces
+670 - Home & Garden > Fireplace > Fireplace Tools
+671 - Home & Garden > Fireplace > Heating Logs & Pellets
+672 - Home & Garden > Fireplace > Wood Stoves
+673 - Home & Garden > Bedding
+674 - Home & Garden > Bedding > Bed Pillows
+675 - Home & Garden > Bedding > Bed Sheets
+676 - Home & Garden > Bedding > Bed Skirts
+677 - Home & Garden > Bedding > Bedding Sets
+678 - Home & Garden > Bedding > Blankets
+679 - Home & Garden > Bedding > Comforters
+680 - Home & Garden > Bedding > Duvet Covers
+681 - Home & Garden > Bedding > Mattress Protectors

@@ -26,7 +26,7 @@ const nextConfig = {
         headers: [
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*.groovygallerydesigns.com https://i0.wp.com https://ae01.alicdn.com; font-src 'self'; connect-src 'self' https://api.stripe.com; frame-src 'self' https://js.stripe.com; object-src 'none';"
+            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*.groovygallerydesigns.com https://i0.wp.com https://ae01.alicdn.com https://www.googletagmanager.com https://www.google-analytics.com https://stats.g.doubleclick.net https://pagead2.googlesyndication.com; font-src 'self'; connect-src 'self' https://api.stripe.com https://www.google-analytics.com https://stats.g.doubleclick.net https://www.merchant-center-analytics.goog https://pagead2.googlesyndication.com https://www.googletagmanager.com; frame-src 'self' https://js.stripe.com; object-src 'none';"
           },
           {
             key: 'X-Content-Type-Options',

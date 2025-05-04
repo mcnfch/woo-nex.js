@@ -487,6 +487,97 @@ export async function getRelatedProducts(relatedIds: number[], limit: number = 4
 }
 
 /**
+ * Fetch all products from WooCommerce API for Google Merchant Center feed
+ * This function fetches all products across all pages with a higher per_page value
+ * @returns Array of all products
+ */
+export async function fetchAllProducts(): Promise<Product[]> {
+  try {
+    // Use a higher per_page value to minimize API calls
+    const perPage = 100;
+    
+    // WooCommerce API credentials from environment variables
+    const consumerKey = process.env.NEXT_PUBLIC_WOOCOMMERCE_KEY;
+    const consumerSecret = process.env.NEXT_PUBLIC_WOOCOMMERCE_SECRET;
+    const woocommerceUrl = process.env.NEXT_PUBLIC_WOOCOMMERCE_URL;
+
+    if (!consumerKey || !consumerSecret || !woocommerceUrl) {
+      throw new Error('WooCommerce API credentials not found in environment variables');
+    }
+
+    // Create authentication string for Basic Auth
+    const authString = Buffer.from(`${consumerKey}:${consumerSecret}`).toString('base64');
+
+    // Function to fetch a single page of products
+    const fetchProductPage = async (page: number): Promise<{products: Product[], totalPages: number}> => {
+      // Build the API URL with parameters
+      const apiUrl = `${woocommerceUrl}/wp-json/wc/v3/products?per_page=${perPage}&page=${page}&status=publish&_=${Date.now()}`;
+      
+      // Make the request to WooCommerce API
+      const response = await fetch(apiUrl, {
+        headers: {
+          'Authorization': `Basic ${authString}`,
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`WooCommerce API responded with status: ${response.status}`);
+      }
+
+      // Get total pages from headers
+      const totalPages = parseInt(response.headers.get('X-WP-TotalPages') || '1', 10);
+      
+      // Return products and total pages
+      return {
+        products: (await response.json()).map((product: Product) => ({
+          ...product,
+          name: decodeHtmlEntities(product.name),
+          description: decodeHtmlEntities(product.description),
+          short_description: decodeHtmlEntities(product.short_description),
+          categories: product.categories ? product.categories.map((cat: {id: number; name: string; slug: string}) => ({
+            ...cat,
+            name: decodeHtmlEntities(cat.name)
+          })) : []
+        })),
+        totalPages
+      };
+    };
+
+    // Fetch first page to get total pages
+    const firstPageResult = await fetchProductPage(1);
+    let allProducts = [...firstPageResult.products];
+    
+    // Fetch remaining pages if there are more than one
+    if (firstPageResult.totalPages > 1) {
+      const remainingPagePromises = [];
+      
+      // Create promises for pages 2 to totalPages
+      for (let page = 2; page <= firstPageResult.totalPages; page++) {
+        remainingPagePromises.push(fetchProductPage(page));
+      }
+      
+      // Wait for all remaining pages to be fetched
+      const remainingPagesResults = await Promise.all(remainingPagePromises);
+      
+      // Add products from remaining pages to allProducts
+      for (const result of remainingPagesResults) {
+        allProducts = [...allProducts, ...result.products];
+      }
+    }
+    
+    console.log(`Fetched ${allProducts.length} products from WooCommerce API`);
+    return allProducts;
+  } catch (error) {
+    console.error('Error fetching all products:', error);
+    return [];
+  }
+}
+
+/**
  * WordPress Blog Post interface
  */
 export interface BlogPost {

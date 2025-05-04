@@ -23,6 +23,17 @@ module.exports = {
       env: {
         NODE_ENV: 'production'
       }
+    },
+    {
+      name: 'google-feed',
+      script: 'src/scripts/generate-google-feed.js',
+      instances: 1,
+      autorestart: false,
+      watch: false,
+      cron_restart: '0 */12 * * *', // Run twice daily (every 12 hours)
+      env: {
+        NODE_ENV: 'production'
+      }
     }
   ]
 };

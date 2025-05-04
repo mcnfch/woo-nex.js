@@ -1,0 +1,22 @@
+# Google_Product_Taxonomy_Version: 2021-09-21
+166 - Apparel & Accessories
+1604 - Apparel & Accessories > Clothing
+1831 - Apparel & Accessories > Clothing > Dresses
+5249 - Apparel & Accessories > Clothing > One-Pieces > Jumpsuits & Rompers
+5183 - Apparel & Accessories > Clothing > Shirts & Tops
+5714 - Apparel & Accessories > Clothing > Shirts & Tops > T-Shirts
+5352 - Apparel & Accessories > Clothing > Costumes & Accessories
+5353 - Apparel & Accessories > Clothing > Costumes & Accessories > Costumes
+5354 - Apparel & Accessories > Clothing > Costumes & Accessories > Costume Accessories
+167 - Apparel & Accessories > Clothing Accessories
+168 - Apparel & Accessories > Clothing Accessories > Scarves & Shawls
+169 - Apparel & Accessories > Clothing Accessories > Sunglasses
+172 - Apparel & Accessories > Clothing Accessories > Hats
+177 - Apparel & Accessories > Shoes
+178 - Apparel & Accessories > Shoes > Shoes
+179 - Apparel & Accessories > Shoes > Boots
+632 - Home & Garden
+639 - Home & Garden > Decor
+657 - Home & Garden > Decor > Tapestries
+673 - Home & Garden > Bedding
+678 - Home & Garden > Bedding > Blankets

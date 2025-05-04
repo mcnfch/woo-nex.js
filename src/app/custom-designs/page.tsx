@@ -1,12 +1,141 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useRef, ChangeEvent } from 'react';
 import { useRouter } from 'next/navigation';
 
 export default function CustomDesigns() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [uploadStatus, setUploadStatus] = useState<{
+    uploading: boolean;
+    error: string | null;
+    fileUrl: string | null;
+    fileId: string | null;
+  }>({
+    uploading: false,
+    error: null,
+    fileUrl: null,
+    fileId: null,
+  });
+  const [referenceUploadStatus, setReferenceUploadStatus] = useState<{
+    uploading: boolean;
+    error: string | null;
+    fileUrls: string[];
+    fileIds: string[];
+  }>({
+    uploading: false,
+    error: null,
+    fileUrls: [],
+    fileIds: [],
+  });
+  
   const router = useRouter();
+  const designFileInputRef = useRef<HTMLInputElement>(null);
+  const referenceFilesInputRef = useRef<HTMLInputElement>(null);
+
+  // Handle file upload for the design file
+  const handleDesignFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    
+    const file = files[0];
+    setUploadStatus({
+      uploading: true,
+      error: null,
+      fileUrl: null,
+      fileId: null,
+    });
+    
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const response = await fetch('/api/upload-media', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new Error(errorData?.error || 'Failed to upload file');
+      }
+      
+      const result = await response.json();
+      
+      setUploadStatus({
+        uploading: false,
+        error: null,
+        fileUrl: result.mediaUrl,
+        fileId: result.mediaId.toString(),
+      });
+      
+      console.log('File uploaded successfully:', result);
+    } catch (error: any) {
+      console.error('Error uploading file:', error);
+      setUploadStatus({
+        uploading: false,
+        error: error.message || 'Failed to upload file',
+        fileUrl: null,
+        fileId: null,
+      });
+    }
+  };
+  
+  // Handle file upload for reference files
+  const handleReferenceFilesChange = async (e: ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    
+    setReferenceUploadStatus({
+      uploading: true,
+      error: null,
+      fileUrls: [],
+      fileIds: [],
+    });
+    
+    try {
+      const fileUrls: string[] = [];
+      const fileIds: string[] = [];
+      
+      // Upload each file one by one
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        const response = await fetch('/api/upload-media', {
+          method: 'POST',
+          body: formData,
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => null);
+          throw new Error(errorData?.error || `Failed to upload file ${i + 1}`);
+        }
+        
+        const result = await response.json();
+        fileUrls.push(result.mediaUrl);
+        fileIds.push(result.mediaId.toString());
+      }
+      
+      setReferenceUploadStatus({
+        uploading: false,
+        error: null,
+        fileUrls,
+        fileIds,
+      });
+      
+      console.log('Reference files uploaded successfully:', { fileUrls, fileIds });
+    } catch (error: any) {
+      console.error('Error uploading reference files:', error);
+      setReferenceUploadStatus({
+        uploading: false,
+        error: error.message || 'Failed to upload reference files',
+        fileUrls: [],
+        fileIds: [],
+      });
+    }
+  };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>, formType: string) => {
     e.preventDefault();
@@ -34,9 +163,13 @@ export default function CustomDesigns() {
         case 'upload':
           formData.append('designName', (form.querySelector('input[name="designName"]') as HTMLInputElement).value);
           formData.append('productType', (form.querySelector('input[name="productType"]') as HTMLInputElement).value);
-          const uploadFile = (form.querySelector('input[type="file"]') as HTMLInputElement).files?.[0];
-          if (uploadFile) {
-            formData.append('file', uploadFile);
+          
+          // Add the uploaded file URL and ID instead of the actual file
+          if (uploadStatus.fileUrl && uploadStatus.fileId) {
+            formData.append('designFileUrl', uploadStatus.fileUrl);
+            formData.append('designFileId', uploadStatus.fileId);
+          } else {
+            throw new Error('Please upload a design file first');
           }
           break;
 
@@ -44,11 +177,11 @@ export default function CustomDesigns() {
           formData.append('vision', (form.querySelector('textarea[name="vision"]') as HTMLTextAreaElement).value);
           formData.append('productType', (form.querySelector('input[name="productType"]') as HTMLInputElement).value);
           formData.append('notes', (form.querySelector('textarea[name="notes"]') as HTMLTextAreaElement).value || '');
-          const referenceFiles = (form.querySelector('input[type="file"]') as HTMLInputElement).files;
-          if (referenceFiles) {
-            for (let i = 0; i < referenceFiles.length; i++) {
-              formData.append('referenceFiles', referenceFiles[i]);
-            }
+          
+          // Add the uploaded reference file URLs and IDs
+          if (referenceUploadStatus.fileUrls.length > 0) {
+            formData.append('referenceFileUrls', JSON.stringify(referenceUploadStatus.fileUrls));
+            formData.append('referenceFileIds', JSON.stringify(referenceUploadStatus.fileIds));
           }
           break;
       }
@@ -201,11 +334,26 @@ export default function CustomDesigns() {
                     <label className="block text-gray-900 dark:text-gray-100 font-medium mb-2">Upload File*</label>
                     <input
                       type="file"
+                      name="file"
                       accept=".png,.jpg,.jpeg,.svg"
                       className="w-full text-gray-900 dark:text-gray-100"
                       required
+                      ref={designFileInputRef}
+                      onChange={handleDesignFileChange}
                     />
                     <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">Supported: PNG, JPG, SVG</p>
+                    
+                    {uploadStatus.uploading && (
+                      <p className="text-sm text-blue-600 dark:text-blue-400 mt-2">Uploading file...</p>
+                    )}
+                    
+                    {uploadStatus.error && (
+                      <p className="text-sm text-red-600 dark:text-red-400 mt-2">Error: {uploadStatus.error}</p>
+                    )}
+                    
+                    {uploadStatus.fileUrl && (
+                      <p className="text-sm text-green-600 dark:text-green-400 mt-2">File uploaded successfully!</p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-gray-900 dark:text-gray-100 font-medium mb-2">Product Type*</label>
@@ -231,10 +379,10 @@ export default function CustomDesigns() {
                 </div>
                 <button
                   type="submit"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || uploadStatus.uploading || !uploadStatus.fileUrl}
                   className="w-full bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 mt-6 disabled:bg-purple-300 dark:disabled:bg-purple-800"
                 >
-                  {isSubmitting ? 'Submitting...' : 'Upload Design'}
+                  {isSubmitting ? 'Submitting...' : uploadStatus.uploading ? 'Uploading File...' : 'Upload Design'}
                 </button>
               </form>
             </div>
@@ -259,11 +407,28 @@ export default function CustomDesigns() {
                     <label className="block text-gray-900 dark:text-gray-100 font-medium mb-2">Reference Images</label>
                     <input
                       type="file"
+                      name="referenceFiles"
                       accept=".png,.jpg,.jpeg,.svg"
                       multiple
                       className="w-full text-gray-900 dark:text-gray-100"
+                      ref={referenceFilesInputRef}
+                      onChange={handleReferenceFilesChange}
                     />
                     <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">Optional: Upload reference images</p>
+                    
+                    {referenceUploadStatus.uploading && (
+                      <p className="text-sm text-blue-600 dark:text-blue-400 mt-2">Uploading files...</p>
+                    )}
+                    
+                    {referenceUploadStatus.error && (
+                      <p className="text-sm text-red-600 dark:text-red-400 mt-2">Error: {referenceUploadStatus.error}</p>
+                    )}
+                    
+                    {referenceUploadStatus.fileUrls.length > 0 && (
+                      <p className="text-sm text-green-600 dark:text-green-400 mt-2">
+                        {referenceUploadStatus.fileUrls.length} file(s) uploaded successfully!
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-gray-900 dark:text-gray-100 font-medium mb-2">Product Type*</label>
@@ -286,10 +451,10 @@ export default function CustomDesigns() {
                 </div>
                 <button
                   type="submit"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || referenceUploadStatus.uploading}
                   className="w-full bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 mt-6 disabled:bg-purple-300 dark:disabled:bg-purple-800"
                 >
-                  {isSubmitting ? 'Submitting...' : 'Start Design Process'}
+                  {isSubmitting ? 'Submitting...' : referenceUploadStatus.uploading ? 'Uploading Files...' : 'Start Design Process'}
                 </button>
               </form>
             </div>

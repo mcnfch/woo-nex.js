@@ -81,7 +81,8 @@ export default function StripeEmbeddedCheckout() {
   // This uses custom CSS to try to make the wallet buttons more prominent
   return (
     <div id="checkout" className="bg-white rounded-lg shadow-sm w-full">
-      <style jsx global>{`
+      <style dangerouslySetInnerHTML={{
+        __html: `
         /* Make Apple Pay and Google Pay buttons more prominent */
         .StripeCheckout [data-testid="apple-pay-button"],
         .StripeCheckout [data-testid="google-pay-button"] {
@@ -89,7 +90,7 @@ export default function StripeEmbeddedCheckout() {
           margin-bottom: 15px !important;
           box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
-      `}</style>
+      `}} />
       <EmbeddedCheckoutProvider
         stripe={stripePromise}
         options={{ clientSecret }}
